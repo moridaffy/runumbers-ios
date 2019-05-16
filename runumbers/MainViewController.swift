@@ -18,6 +18,12 @@ class MainViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
+    title = "Склонялка"
+    
+    
+    let aboutBarButtonItem = UIBarButtonItem(image: #imageLiteral(resourceName: "icon_info"), style: .plain, target: self, action: #selector(aboutButtonTapped))
+    navigationItem.rightBarButtonItem = aboutBarButtonItem
+    
     numberField.delegate = self
     startButton.backgroundColor = UIColor.blue
     startButton.layer.cornerRadius = startButton.frame.height / 2.0
@@ -40,14 +46,17 @@ class MainViewController: UIViewController {
     for i in 1...6 {
       if let label = resultLabelStackView.viewWithTag(i) as? UILabel {
         let text = NSMutableAttributedString()
-        text.append(NSAttributedString(string: Number.caseNames[i], attributes: [.font: UIFont.systemFont(ofSize: 12.0, weight: .regular),
-                                                                                 .foregroundColor: UIColor.black.withAlphaComponent(0.75)]))
+        text.append(NSAttributedString(string: Number.caseNames[i],
+                                       attributes: [.font: UIFont.systemFont(ofSize: 12.0, weight: .regular),
+                                                    .foregroundColor: UIColor.black.withAlphaComponent(0.75)]))
         if !Number.caseQuestions[i].isEmpty {
-          text.append(NSAttributedString(string: " (\(Number.caseQuestions[i]))", attributes: [.font: UIFont.systemFont(ofSize: 12.0, weight: .regular),
-                                                                                               .foregroundColor: UIColor.black.withAlphaComponent(0.75)]))
+          text.append(NSAttributedString(string: " (\(Number.caseQuestions[i]))",
+                                         attributes: [.font: UIFont.systemFont(ofSize: 12.0, weight: .regular),
+                                                      .foregroundColor: UIColor.black.withAlphaComponent(0.75)]))
         }
-        text.append(NSAttributedString(string: "\n" + result.cases[i], attributes: [.font: UIFont.systemFont(ofSize: 14.0, weight: .regular),
-                                                                                    .foregroundColor: UIColor.black]))
+        text.append(NSAttributedString(string: "\n" + result.cases[i],
+                                       attributes: [.font: UIFont.systemFont(ofSize: 14.0, weight: .regular),
+                                                    .foregroundColor: UIColor.black]))
         label.attributedText = text
       }
     }
@@ -56,9 +65,27 @@ class MainViewController: UIViewController {
   @IBAction private func startButtonTapped() {
     guard let value = Int(numberField.text ?? "") else { return }
     view.endEditing(true)
+    startButton.setTitle("Склоняем...", for: .normal)
     APIManager.shared.loadCases(for: value) { [weak self] (number, error) in
+      self?.startButton.setTitle("Просклонять", for: .normal)
       self?.setupResultLabel(result: number)
     }
+  }
+  
+  @objc private func aboutButtonTapped() {
+    let alert = UIAlertController(title: "О приложении",
+                                  message: "Приложение работает на основе бесплатного веб-сервиса. При вводе любого числа Вы получаете числительное, написанное прописью, а также просклоненное по всем падежам.",
+                                  preferredStyle: .alert)
+    alert.addAction(UIAlertAction(title: "Веб-сервис", style: .default) { (_) in
+      UIApplication.shared.open(URL(string: "https://numeralonline.ru/")!, options: [:], completionHandler: nil)
+    })
+    alert.addAction(UIAlertAction(title: "Разработчик", style: .default) { (_) in
+      UIApplication.shared.open(URL(string: "http://mskr.name")!, options: [:], completionHandler: nil)
+    })
+    alert.addAction(UIAlertAction(title: "Отмена", style: .cancel) { (_) in
+      alert.dismiss(animated: true, completion: nil)
+    })
+    present(alert, animated: true, completion: nil)
   }
 }
 
